@@ -1,0 +1,20 @@
+model User {
+  id       Int  @id @default(autoincrement())
+  email    String   @unique
+  name     String?
+  password String
+  posts    Post[]
+}
+
+model Post {
+  id        Int   @id @default(autoincrement())
+  title     String
+  content   String
+  published Boolean  @default(false)
+  author    User     @relation(fields: [authorId], references: [id])
+  authorId  Int
+}
+
+
+
+prisma://accelerate.prisma-data.net/?api_key=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhcGlfa2V5IjoiZjJlNjIyY2MtZWM2My00ZDliLTk0MGMtNmNmZTYyNjMwM2JjIiwidGVuYW50X2lkIjoiZTQzMzk1Njc0NDg5Y2M2NzBjMzQ4MWZjOWI1YWVlMTA4NTU5N2QzNmVhZWU2YWJlYmMzYjgxMzEzNmE0ODU0MSIsImludGVybmFsX3NlY3JldCI6ImM3MDE3N2Y0LWQ4ZTUtNDcxYy1iZWIxLThjYzgzYTBiNzNkYiJ9.Q5WVYtTa_7Fn2TKBTWYNbWPnLnqSrfpz18zuSJyXKng
