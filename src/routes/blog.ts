@@ -45,6 +45,7 @@ blogRouter.post('/', async (c) => {
     datasourceUrl: c.env?.DATABASE_URL,
   }).$extends(withAccelerate());
 
+  
  
   const post = await prisma.post.create({
     data: {
@@ -86,10 +87,31 @@ blogRouter.get('/bulk', async (c) => {
   const prisma = new PrismaClient({
     datasourceUrl: c.env?.DATABASE_URL,
   }).$extends(withAccelerate());
-  const blogs = await prisma.post.findMany();
 
-  return c.json({ blogs });
+  try {
+    const blogs = await prisma.post.findMany({
+      select: {
+        id: true,
+        title: true,
+        content: true,
+        author: {
+          select: {
+            name: true,
+          },
+        },
+      },
+    });
+
+    return c.json({ blogs });
+  } catch (error) {
+    console.error('Error fetching blogs:', error);
+    c.status(500);
+    return c.json({ error: 'Internal Server Error' });
+  } finally {
+    await prisma.$disconnect();
+  }
 });
+
 
 blogRouter.get('/:id', async (c) => {
   const id =  c.req.param("id");
@@ -100,11 +122,46 @@ blogRouter.get('/:id', async (c) => {
 
   try {
     const post = await prisma.post.findFirst({
-      where: { id: Number(id) }
+      where: { 
+        id: Number(id)
+       },
+       select:{
+        id:true,
+        title:true,
+        content:true,
+        author:{
+          select:{
+            name:true
+          }
+        }
+       }
     });
     return c.json({ post });
   } catch {
     c.status(411);
     return c.json({ message: "error while getting blog" });
+  }
+});
+
+
+blogRouter.delete('/:id', async (c) => {
+  const id = c.req.param('id');
+  const prisma = new PrismaClient({
+    datasourceUrl: c.env?.DATABASE_URL,
+  }).$extends(withAccelerate());
+
+  try {
+    const deletedPost = await prisma.post.delete({
+      where: {
+        id: Number(id),
+      },
+    });
+    return c.json({ message: 'Post deleted successfully', id: deletedPost.id });
+  } catch (error) {
+    console.error('Error deleting post:', error);
+    c.status(500);
+    return c.json({ error: 'Internal Server Error' });
+  } finally {
+    await prisma.$disconnect();
   }
 });
